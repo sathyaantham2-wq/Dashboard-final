@@ -29,11 +29,12 @@ const App: React.FC = () => {
     setActiveView('portal');
   };
 
-  if (!currentUser) {
-    return <LoginView onLogin={setCurrentUser} />;
-  }
-
+  // Basic routing logic
   const renderContent = () => {
+    if (!currentUser) {
+      return <LoginView onLogin={setCurrentUser} />;
+    }
+
     switch (activeView) {
       case 'portal':
         return <MainPortal />;
@@ -46,9 +47,13 @@ const App: React.FC = () => {
 
   return (
     <AuthContext.Provider value={{ currentUser, setCurrentUser, logout }}>
-      <Layout activeView={activeView} setActiveView={setActiveView}>
-        {renderContent()}
-      </Layout>
+      {currentUser ? (
+        <Layout activeView={activeView} setActiveView={setActiveView}>
+          {renderContent()}
+        </Layout>
+      ) : (
+        renderContent()
+      )}
     </AuthContext.Provider>
   );
 };

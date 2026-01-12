@@ -1,6 +1,4 @@
 
-"use client";
-
 import React from 'react';
 import { MOCK_USERS } from '../constants';
 import { User } from '../types';
@@ -17,7 +15,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
       <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden relative z-10 border border-slate-800/20">
         <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-10 text-center relative">
           <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl ring-8 ring-slate-800/30">
-            <span className="text-4xl">🏛️</span>
+            <span className="text-4xl text-slate-900">🏛️</span>
           </div>
           <h1 className="text-2xl font-bold text-white mb-2 tracking-tight">Department of Labour</h1>
           <p className="text-slate-400 text-sm">Government of Telangana</p>

@@ -14,7 +14,11 @@ const Layout: React.FC<LayoutProps> = ({ children, activeView, setActiveView }) 
   const [displayDate, setDisplayDate] = useState('');
 
   useEffect(() => {
-    setDisplayDate(new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }));
+    setDisplayDate(new Date().toLocaleDateString('en-IN', { 
+      day: 'numeric', 
+      month: 'long', 
+      year: 'numeric' 
+    }));
   }, []);
 
   const navItems = [
@@ -32,7 +36,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeView, setActiveView }) 
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-cyan-600 rounded-xl flex items-center justify-center font-bold text-xl shadow-lg shadow-cyan-900/40">L</div>
             <div className="hidden md:block">
-              <h1 className="text-sm font-bold uppercase tracking-widest leading-none mb-1">Labour Dept</h1>
+              <h1 className="text-sm font-bold uppercase tracking-widest leading-none mb-1 text-white">Labour Dept</h1>
               <p className="text-[10px] text-slate-400 font-medium">Government of Telangana</p>
             </div>
           </div>
