@@ -1,6 +1,4 @@
 
-"use client";
-
 import React, { useState } from 'react';
 import DashboardView from './DashboardView';
 import ReturnsView from './ReturnsView';

@@ -1,5 +1,5 @@
 
-import React, { useState, createContext, useContext, useEffect } from 'react';
+import React, { useState, createContext, useContext } from 'react';
 import { User } from './types';
 import Layout from './components/Layout';
 import MainPortal from './views/MainPortal';
@@ -29,7 +29,6 @@ const App: React.FC = () => {
     setActiveView('portal');
   };
 
-  // Basic routing logic
   const renderContent = () => {
     if (!currentUser) {
       return <LoginView onLogin={setCurrentUser} />;
