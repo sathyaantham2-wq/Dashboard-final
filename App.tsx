@@ -1,5 +1,5 @@
 
-import React, { useState, createContext, useContext } from 'react';
+import React, { useState, createContext, useContext, useEffect } from 'react';
 import { User } from './types';
 import Layout from './components/Layout';
 import MainPortal from './views/MainPortal';
@@ -22,7 +22,7 @@ export const useAuth = () => useContext(AuthContext);
 
 const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [activeView, setActiveView] = useState('portal'); // 'portal' or 'admin'
+  const [activeView, setActiveView] = useState('portal');
 
   const logout = () => {
     setCurrentUser(null);

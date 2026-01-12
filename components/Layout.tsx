@@ -1,8 +1,6 @@
 
-"use client";
-
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../app/page';
+import { useAuth } from '../App';
 import { Role } from '../types';
 
 interface LayoutProps {

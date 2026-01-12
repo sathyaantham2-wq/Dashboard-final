@@ -1,19 +1,12 @@
 
-"use client";
-
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
-import { useAuth } from '../app/page';
+import { useAuth } from '../App';
 import StatCard from '../components/StatCard';
 import { Role } from '../types';
 
 const DashboardView: React.FC = () => {
   const { currentUser } = useAuth();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const PIE_COLORS = ['#0891b2', '#10b981', '#f59e0b', '#f43f5e', '#6366f1'];
 
@@ -38,8 +31,6 @@ const DashboardView: React.FC = () => {
       default: return "Integrated State-wide Performance Dashboard";
     }
   };
-
-  if (!mounted) return <div className="p-12">Loading Analytics...</div>;
 
   const renderALOAnalytics = () => (
     <div className="space-y-10">
