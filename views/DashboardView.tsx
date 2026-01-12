@@ -1,12 +1,19 @@
 
-import React from 'react';
+"use client";
+
+import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
-import { useAuth } from '../App';
+import { useAuth } from '../app/page';
 import StatCard from '../components/StatCard';
 import { Role } from '../types';
 
 const DashboardView: React.FC = () => {
   const { currentUser } = useAuth();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const PIE_COLORS = ['#0891b2', '#10b981', '#f59e0b', '#f43f5e', '#6366f1'];
 
@@ -32,6 +39,8 @@ const DashboardView: React.FC = () => {
     }
   };
 
+  if (!mounted) return <div className="p-12">Loading Analytics...</div>;
+
   const renderALOAnalytics = () => (
     <div className="space-y-10">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -40,7 +49,6 @@ const DashboardView: React.FC = () => {
         <StatCard title="Inspections Done" value="42" icon="🔍" colorClass="text-emerald-600" />
         <StatCard title="Grievances Resolved" value="92%" icon="✅" colorClass="text-amber-600" />
       </div>
-      
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="bg-white p-8 rounded-[32px] border border-slate-200 shadow-sm">
           <h4 className="font-bold text-slate-800 mb-6 flex items-center gap-2">
@@ -94,7 +102,6 @@ const DashboardView: React.FC = () => {
         <StatCard title="Workers Benf." value="420" icon="👥" />
         <StatCard title="Grievances" value="12" icon="💬" />
       </div>
-
       <div className="bg-white rounded-[32px] border border-slate-200 shadow-sm overflow-hidden">
         <div className="p-8 border-b border-slate-100 bg-slate-50/50">
           <h4 className="font-bold text-slate-800">Act-wise Case Status Dashboard</h4>
@@ -178,16 +185,6 @@ const DashboardView: React.FC = () => {
                 <div className="h-full bg-cyan-500" style={{width: '85%'}}></div>
               </div>
             </div>
-            <div className="pt-4 grid grid-cols-2 gap-4">
-              <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
-                <p className="text-[10px] text-slate-400 uppercase font-bold mb-1">Div. Grievances</p>
-                <p className="text-2xl font-black">42</p>
-              </div>
-              <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
-                <p className="text-[10px] text-slate-400 uppercase font-bold mb-1">Disposal Rate</p>
-                <p className="text-2xl font-black text-emerald-400">76%</p>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -202,7 +199,6 @@ const DashboardView: React.FC = () => {
         <StatCard title="Failures Referred" value="12" icon="⚖️" colorClass="text-rose-500" />
         <StatCard title="Regional Grievances" value="89" icon="🏛️" />
       </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 bg-white p-8 rounded-[32px] border border-slate-200 shadow-sm">
           <h4 className="font-bold text-slate-800 mb-8">Industrial Disputes Settlement Effectiveness</h4>
@@ -256,8 +252,6 @@ const DashboardView: React.FC = () => {
         <StatCard title="Reg. Compliance" value="94%" icon="🏢" />
         <StatCard title="Welfare Coverage" value="1.2M" icon="🏗️" colorClass="text-orange-500" />
       </div>
-
-      {/* State-wide Trend */}
       <div className="bg-white p-10 rounded-[40px] border border-slate-200 shadow-sm">
         <h4 className="text-xl font-black text-slate-800 mb-8 flex items-center gap-4">
           <span className="w-3 h-3 bg-cyan-500 rounded-full animate-pulse"></span>
@@ -288,11 +282,6 @@ const DashboardView: React.FC = () => {
               <h5 className="text-2xl font-black text-slate-900">₹ 14.2 Cr</h5>
               <p className="text-[10px] text-slate-500 mt-2">Welfare Schemes Disbursed</p>
             </div>
-            <div className="p-5 bg-cyan-50 rounded-3xl border border-cyan-100">
-              <p className="text-[10px] font-bold text-cyan-600 uppercase mb-1">S&E Registrations</p>
-              <h5 className="text-2xl font-black text-slate-900">185.4k</h5>
-              <p className="text-[10px] text-slate-500 mt-2">Active Establishments</p>
-            </div>
             <button className="w-full py-4 bg-slate-900 text-white rounded-2xl text-xs font-bold shadow-xl shadow-slate-900/20">
               Generate State Report
             </button>
@@ -313,18 +302,7 @@ const DashboardView: React.FC = () => {
           <h2 className="text-4xl font-black text-slate-900 tracking-tight">{getDashboardTitle()}</h2>
           <p className="text-slate-500 text-sm font-medium mt-1">Derived from verified monthly returns and integrated departmental APIs.</p>
         </div>
-        <div className="flex items-center gap-4">
-           <div className="hidden lg:flex flex-col text-right">
-              <p className="text-[10px] font-bold text-slate-400 uppercase">Live Sync Mode</p>
-              <p className="text-xs font-bold text-emerald-600">Secure API Connected</p>
-           </div>
-           <div className="h-12 w-[1px] bg-slate-200 hidden lg:block"></div>
-           <button className="bg-white border border-slate-200 p-3 rounded-2xl shadow-sm hover:shadow-md transition-all">
-              📅 March 2024
-           </button>
-        </div>
       </div>
-
       <div className="animate-in slide-in-from-bottom-6 duration-700">
         {currentUser?.role === Role.ALO && renderALOAnalytics()}
         {currentUser?.role === Role.ACL && renderACLAnalytics()}
