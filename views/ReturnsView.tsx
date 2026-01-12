@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../App';
 import { Role } from '../types';
+import { GoogleGenAI } from "@google/genai";
 
 interface ValidationErrors {
   [key: string]: string;
@@ -17,9 +18,11 @@ const ReturnsView: React.FC = () => {
   const [success, setSuccess] = useState(false);
   const [values, setValues] = useState<FormValues>({});
   const [errors, setErrors] = useState<ValidationErrors>({});
+  const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const validateField = (name: string, value: string) => {
-    if (value === '') return ''; // Allow empty (treated as 0 or not yet filled)
+    if (value === '') return ''; 
     const num = Number(value);
     if (!/^\d+$/.test(value)) {
       return 'Must be a whole number';
@@ -36,16 +39,39 @@ const ReturnsView: React.FC = () => {
     setErrors(prev => ({ ...prev, [name]: error }));
   };
 
+  const runAiAnalysis = async () => {
+    setIsAnalyzing(true);
+    setAiAnalysis(null);
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const prompt = `As a senior audit officer for the Telangana Labour Department, analyze these monthly return figures submitted by a ${currentUser?.role}. 
+      Data: ${JSON.stringify(values)}
+      Check for:
+      1. Consistency: Does (Opening + Filed - Disposed) equal Closing?
+      2. Anomaly: Are there unusually high or low numbers for ${currentUser?.district}?
+      3. Compliance: Are there many cases 'Reserved for Orders' that haven't been disposed?
+      
+      Provide a brief, professional summary (max 3 bullet points) and flag any specific concerns.`;
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash-lite-latest',
+        contents: prompt,
+      });
+
+      setAiAnalysis(response.text || "Analysis complete. No major anomalies detected.");
+    } catch (error) {
+      console.error("AI Analysis failed:", error);
+      setAiAnalysis("Unable to complete AI analysis at this moment. Please proceed with manual verification.");
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validate all numeric fields currently in state
     const newErrors: ValidationErrors = {};
     let hasErrors = false;
 
-    // We only validate fields that have been interacted with or are part of the current view
-    // For a robust implementation, we'd pre-define fields per role. 
-    // Here we'll check existing values.
     Object.keys(values).forEach(key => {
       if (key === 'remarks') return;
       const err = validateField(key, values[key]);
@@ -57,14 +83,12 @@ const ReturnsView: React.FC = () => {
 
     if (hasErrors) {
       setErrors(newErrors);
-      // Scroll to first error
       const firstError = document.querySelector('.text-rose-500');
       firstError?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
 
     setIsSubmitting(true);
-    // Simulate API call
     setTimeout(() => {
       setIsSubmitting(false);
       setSuccess(true);
@@ -97,7 +121,6 @@ const ReturnsView: React.FC = () => {
     </div>
   );
 
-  // ALO SECTIONS
   const renderALOSections = () => (
     <div className="space-y-12">
       <section>
@@ -138,59 +161,75 @@ const ReturnsView: React.FC = () => {
     </div>
   );
 
-  // ACL & DCL SECTIONS
-  const renderACL_DCLSections = () => (
-    <section>
-      <SectionHeader 
-        id="A" 
-        title="Section A: Act-wise Quasi-Judicial Case Work" 
-        description="Consolidated performance across Minimum Wages, Payment of Wages, S&E Act, and Gratuity."
-        colorClass="bg-indigo-50 text-indigo-600 border-indigo-100"
-      />
-      <div className="overflow-hidden border border-slate-200 rounded-3xl">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-            <tr>
-              <th className="px-6 py-4">Statutory Act</th>
-              <th className="px-6 py-4">Opening</th>
-              <th className="px-6 py-4">Filed</th>
-              <th className="px-6 py-4">Disposed</th>
-              <th className="px-6 py-4">Closing</th>
-              <th className="px-6 py-4">Reserved</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {['S&E Act 48(1)', 'S&E Act 50', 'Minimum Wages Act', 'Payment of Wages', 'Gratuity Act'].map((act, i) => {
-              const actKey = act.toLowerCase().replace(/[^a-z0-9]/g, '_');
-              return (
-                <tr key={i}>
-                  <td className="px-6 py-4 font-bold text-slate-700">{act}</td>
-                  {['opening', 'filed', 'disposed', 'closing', 'reserved'].map(col => {
-                    const name = `act_${actKey}_${col}`;
-                    return (
-                      <td key={col} className="px-2 py-2">
-                        <input 
-                          type="number" 
-                          name={name}
-                          value={values[name] || ''}
-                          onChange={(e) => handleInputChange(name, e.target.value)}
-                          className={`w-20 p-2 border ${errors[name] ? 'border-rose-500 ring-rose-500/10 ring-1' : 'border-slate-100 focus:border-cyan-500'} rounded outline-none transition-all text-sm`} 
-                          placeholder="0" 
-                        />
-                        {errors[name] && <div className="text-[8px] text-rose-500 font-bold mt-0.5 leading-none">{errors[name]}</div>}
-                      </td>
-                    );
-                  })}
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-    </section>
-  );
+  const renderACL_DCLSections = () => {
+    const statutoryActs = [
+      'Telangana Shops & Establishments Act Sec. 48(1)',
+      'Telangana Shops & Establishments Act Sec. 50',
+      'Payment of Gratuity Act',
+      'Employees’ Compensation Act',
+      'Minimum Wages Act',
+      'Payment of Wages Act'
+    ];
 
-  // JCL SECTIONS
+    const columns = [
+      { key: 'pending_beginning', label: 'Pending at Beginning' },
+      { key: 'filed', label: 'Cases Filed' },
+      { key: 'disposed', label: 'Cases Disposed' },
+      { key: 'pending_end', label: 'Pending at End' },
+      { key: 'workers_benefitted', label: 'Workers Benefitted' },
+      { key: 'reserved', label: 'Reserved for Orders' }
+    ];
+
+    return (
+      <section>
+        <SectionHeader 
+          id="A" 
+          title="Section A: Act-wise Quasi-Judicial Case Work" 
+          description="Performance across specific Statutory Acts including disposal, worker benefits, and reserved orders."
+          colorClass="bg-indigo-50 text-indigo-600 border-indigo-100"
+        />
+        <div className="overflow-x-auto border border-slate-200 rounded-3xl shadow-sm">
+          <table className="w-full text-left text-sm border-collapse">
+            <thead className="bg-slate-50 border-b border-slate-100 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+              <tr>
+                <th className="px-6 py-5 min-w-[200px]">Statutory Act</th>
+                {columns.map(col => (
+                  <th key={col.key} className="px-4 py-5 text-center leading-tight">{col.label}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 bg-white">
+              {statutoryActs.map((act, i) => {
+                const actKey = act.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                return (
+                  <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="px-6 py-4 font-bold text-slate-700 text-xs">{act}</td>
+                    {columns.map(col => {
+                      const name = `act_${actKey}_${col.key}`;
+                      return (
+                        <td key={col.key} className="px-3 py-3">
+                          <input 
+                            type="number" 
+                            name={name}
+                            value={values[name] || ''}
+                            onChange={(e) => handleInputChange(name, e.target.value)}
+                            className={`w-full max-w-[80px] mx-auto block p-2 text-center border ${errors[name] ? 'border-rose-500 ring-rose-500/10 ring-1' : 'border-slate-100 focus:border-cyan-500'} rounded outline-none transition-all text-sm font-medium`} 
+                            placeholder="0" 
+                          />
+                          {errors[name] && <div className="text-[8px] text-rose-500 font-bold mt-1 text-center">{errors[name]}</div>}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    );
+  };
+
   const renderJCLSections = () => (
     <section>
       <SectionHeader 
@@ -225,7 +264,6 @@ const ReturnsView: React.FC = () => {
     </section>
   );
 
-  // COMMON SECTION
   const renderGrievanceSection = () => (
     <section className="pt-8 border-t border-slate-100">
       <SectionHeader 
@@ -246,7 +284,7 @@ const ReturnsView: React.FC = () => {
   const isSupervisory = currentUser?.role === Role.COMMISSIONER || currentUser?.role === Role.ADMIN;
 
   return (
-    <div className="max-w-5xl mx-auto pb-20 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="max-w-6xl mx-auto pb-20 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="bg-white rounded-[40px] border border-slate-200 shadow-xl overflow-hidden">
         <div className="bg-slate-900 p-12 text-white relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-600/10 rounded-full -mr-20 -mt-20 blur-3xl"></div>
@@ -281,16 +319,48 @@ const ReturnsView: React.FC = () => {
               
               {renderGrievanceSection()}
 
-              <div className="pt-8 border-t border-slate-100">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-8 border-t border-slate-100">
                 <div className="flex flex-col gap-1.5">
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">Remarks / Justification for Pendency</label>
                   <textarea 
                     name="remarks"
                     value={values.remarks || ''}
                     onChange={(e) => handleInputChange('remarks', e.target.value)}
-                    className="w-full bg-white border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 outline-none transition-all min-h-[100px]" 
+                    className="w-full bg-white border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 outline-none transition-all min-h-[120px]" 
                     placeholder="Enter details regarding significant variations..." 
                   />
+                </div>
+                <div className="bg-slate-50 rounded-3xl border border-slate-200 p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">✨</span>
+                      <h5 className="text-xs font-black text-slate-800 uppercase tracking-widest">Gemini AI Audit Assistant</h5>
+                    </div>
+                    <button 
+                      type="button"
+                      onClick={runAiAnalysis}
+                      disabled={isAnalyzing || Object.keys(values).length === 0}
+                      className="px-4 py-1.5 bg-cyan-600 text-white text-[10px] font-bold rounded-full hover:bg-cyan-700 disabled:opacity-50 transition-colors"
+                    >
+                      {isAnalyzing ? 'Analyzing...' : 'Audit Returns'}
+                    </button>
+                  </div>
+                  <div className="min-h-[60px]">
+                    {isAnalyzing ? (
+                      <div className="flex flex-col gap-2">
+                        <div className="h-2 w-full bg-slate-200 rounded animate-pulse"></div>
+                        <div className="h-2 w-3/4 bg-slate-200 rounded animate-pulse"></div>
+                      </div>
+                    ) : aiAnalysis ? (
+                      <div className="text-xs text-slate-600 leading-relaxed whitespace-pre-line bg-white/50 p-4 rounded-xl border border-slate-100">
+                        {aiAnalysis}
+                      </div>
+                    ) : (
+                      <p className="text-[10px] text-slate-400 font-medium italic">
+                        Input your monthly data and click 'Audit Returns' to get AI-powered consistency checks and summaries.
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
