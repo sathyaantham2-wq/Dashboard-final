@@ -162,7 +162,7 @@ const ReturnsView: React.FC = () => {
   );
 
   const renderACL_DCLSections = () => {
-    const statutoryActs = [
+    const aclActs = [
       'Telangana Shops & Establishments Act Sec. 48(1)',
       'Telangana Shops & Establishments Act Sec. 50',
       'Payment of Gratuity Act',
@@ -171,13 +171,20 @@ const ReturnsView: React.FC = () => {
       'Payment of Wages Act'
     ];
 
+    const dclActs = [
+      'Telangana Shops & Establishments Act Sec. 48(3)',
+      'Telangana Shops & Establishments Act Sec. 53'
+    ];
+
+    const statutoryActs = currentUser?.role === Role.DCL ? dclActs : aclActs;
+
     const columns = [
-      { key: 'pending_beginning', label: 'Pending at Beginning' },
+      { key: 'pending_beginning', label: 'Cases Pending at Beginning' },
       { key: 'filed', label: 'Cases Filed' },
       { key: 'disposed', label: 'Cases Disposed' },
-      { key: 'pending_end', label: 'Pending at End' },
+      { key: 'pending_end', label: 'Cases Pending at End' },
       { key: 'workers_benefitted', label: 'Workers Benefitted' },
-      { key: 'reserved', label: 'Reserved for Orders' }
+      { key: 'reserved', label: 'Cases Reserved for Orders' }
     ];
 
     return (
@@ -185,7 +192,7 @@ const ReturnsView: React.FC = () => {
         <SectionHeader 
           id="A" 
           title="Section A: Act-wise Quasi-Judicial Case Work" 
-          description="Performance across specific Statutory Acts including disposal, worker benefits, and reserved orders."
+          description="Statutory case tracking for assigned Acts including disposal, worker benefits, and reserved orders."
           colorClass="bg-indigo-50 text-indigo-600 border-indigo-100"
         />
         <div className="overflow-x-auto border border-slate-200 rounded-3xl shadow-sm">
