@@ -68,11 +68,11 @@ const Layout: React.FC<LayoutProps> = ({ children, activeView, setActiveView }) 
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-3 bg-slate-800/50 p-2 pl-3 rounded-2xl border border-slate-700/50">
               <div className="text-right hidden lg:block">
-                <p className="text-xs font-bold text-white leading-none mb-1">{currentUser?.name}</p>
-                <p className="text-[10px] text-slate-400 font-medium">{currentUser?.role}</p>
+                <p className="text-xs font-bold text-white leading-none mb-1">{currentUser?.role}</p>
+                <p className="text-[10px] text-slate-400 font-medium">Authorized Officer</p>
               </div>
               <div className="w-9 h-9 rounded-xl bg-slate-700 flex items-center justify-center text-sm font-bold text-cyan-400 border border-slate-600">
-                {currentUser?.name.charAt(0)}
+                {currentUser?.role.charAt(0)}
               </div>
               <button
                 onClick={logout}
