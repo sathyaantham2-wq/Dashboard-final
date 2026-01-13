@@ -10,6 +10,8 @@ export enum Role {
 
 export interface User {
   id: string;
+  username: string;
+  password?: string;
   name: string;
   role: Role;
   mobile: string;
@@ -17,7 +19,10 @@ export interface User {
   district: string;
   division?: string;
   circle?: string;
+  location?: string;
   superiorId?: string;
+  status: 'Active' | 'Inactive';
+  mustChangePassword?: boolean;
 }
 
 // Uniform 6-field structure for Act-wise Case Work (ACL / DCL)

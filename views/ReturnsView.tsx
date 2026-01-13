@@ -39,6 +39,13 @@ const ReturnsView: React.FC = () => {
     setErrors(prev => ({ ...prev, [name]: error }));
   };
 
+  const toggleValue = (name: string) => {
+    setValues(prev => ({
+      ...prev,
+      [name]: prev[name] === 'Yes' ? 'No' : 'Yes'
+    }));
+  };
+
   const runAiAnalysis = async () => {
     setIsAnalyzing(true);
     setAiAnalysis(null);
@@ -54,7 +61,7 @@ const ReturnsView: React.FC = () => {
       Provide a brief, professional summary (max 3 bullet points) and flag any specific concerns.`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-lite-latest',
+        model: 'gemini-3-flash-preview',
         contents: prompt,
       });
 
@@ -73,7 +80,7 @@ const ReturnsView: React.FC = () => {
     let hasErrors = false;
 
     Object.keys(values).forEach(key => {
-      if (key === 'remarks') return;
+      if (key === 'remarks' || key.includes('_received')) return;
       const err = validateField(key, values[key]);
       if (err) {
         newErrors[key] = err;
@@ -161,6 +168,48 @@ const ReturnsView: React.FC = () => {
     </div>
   );
 
+  const renderSupervisoryOverview = () => (
+    <section className="mb-16">
+      <SectionHeader 
+        id="S" 
+        title="Supervisory Overview" 
+        description="Verification of monthly returns received from reporting officers within the division."
+        colorClass="bg-purple-50 text-purple-600 border-purple-100"
+      />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-8 bg-purple-50/30 rounded-[32px] border border-purple-100/50">
+        {[
+          { label: "Total ALO Monthly Reports received", name: "alo_reports_received" },
+          { label: "Total ACL Monthly Reports received", name: "acl_reports_received" }
+        ].map(item => (
+          <div key={item.name} className="flex items-center justify-between p-6 bg-white rounded-2xl border border-purple-100 shadow-sm">
+            <div className="flex flex-col gap-1">
+              <span className="text-xs font-bold text-slate-800 tracking-tight">{item.label}</span>
+              <span className="text-[10px] text-slate-400 font-medium">Mandatory submission check</span>
+            </div>
+            <div className="flex bg-slate-100 p-1 rounded-xl">
+              {['Yes', 'No'].map(option => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => setValues(v => ({ ...v, [item.name]: option }))}
+                  className={`px-6 py-2 rounded-lg text-xs font-bold transition-all ${
+                    values[item.name] === option 
+                      ? option === 'Yes' 
+                        ? 'bg-emerald-500 text-white shadow-lg' 
+                        : 'bg-rose-500 text-white shadow-lg' 
+                      : 'text-slate-400 hover:text-slate-600'
+                  }`}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+
   const renderACL_DCLSections = () => {
     const aclActs = [
       'Telangana Shops & Establishments Act Sec. 48(1)',
@@ -188,52 +237,56 @@ const ReturnsView: React.FC = () => {
     ];
 
     return (
-      <section>
-        <SectionHeader 
-          id="A" 
-          title="Section A: Act-wise Quasi-Judicial Case Work" 
-          description="Statutory case tracking for assigned Acts including disposal, worker benefits, and reserved orders."
-          colorClass="bg-indigo-50 text-indigo-600 border-indigo-100"
-        />
-        <div className="overflow-x-auto border border-slate-200 rounded-3xl shadow-sm">
-          <table className="w-full text-left text-sm border-collapse">
-            <thead className="bg-slate-50 border-b border-slate-100 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-              <tr>
-                <th className="px-6 py-5 min-w-[200px]">Statutory Act</th>
-                {columns.map(col => (
-                  <th key={col.key} className="px-4 py-5 text-center leading-tight">{col.label}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 bg-white">
-              {statutoryActs.map((act, i) => {
-                const actKey = act.toLowerCase().replace(/[^a-z0-9]/g, '_');
-                return (
-                  <tr key={i} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-6 py-4 font-bold text-slate-700 text-xs">{act}</td>
-                    {columns.map(col => {
-                      const name = `act_${actKey}_${col.key}`;
-                      return (
-                        <td key={col.key} className="px-3 py-3">
-                          <input 
-                            type="number" 
-                            name={name}
-                            value={values[name] || ''}
-                            onChange={(e) => handleInputChange(name, e.target.value)}
-                            className={`w-full max-w-[80px] mx-auto block p-2 text-center border ${errors[name] ? 'border-rose-500 ring-rose-500/10 ring-1' : 'border-slate-100 focus:border-cyan-500'} rounded outline-none transition-all text-sm font-medium`} 
-                            placeholder="0" 
-                          />
-                          {errors[name] && <div className="text-[8px] text-rose-500 font-bold mt-1 text-center">{errors[name]}</div>}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </section>
+      <div className="space-y-16">
+        {currentUser?.role === Role.DCL && renderSupervisoryOverview()}
+        
+        <section>
+          <SectionHeader 
+            id="A" 
+            title="Section A: Act-wise Quasi-Judicial Case Work" 
+            description="Statutory case tracking for assigned Acts including disposal, worker benefits, and reserved orders."
+            colorClass="bg-indigo-50 text-indigo-600 border-indigo-100"
+          />
+          <div className="overflow-x-auto border border-slate-200 rounded-3xl shadow-sm">
+            <table className="w-full text-left text-sm border-collapse">
+              <thead className="bg-slate-50 border-b border-slate-100 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                <tr>
+                  <th className="px-6 py-5 min-w-[200px]">Statutory Act</th>
+                  {columns.map(col => (
+                    <th key={col.key} className="px-4 py-5 text-center leading-tight">{col.label}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 bg-white">
+                {statutoryActs.map((act, i) => {
+                  const actKey = act.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                  return (
+                    <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="px-6 py-4 font-bold text-slate-700 text-xs">{act}</td>
+                      {columns.map(col => {
+                        const name = `act_${actKey}_${col.key}`;
+                        return (
+                          <td key={col.key} className="px-3 py-3">
+                            <input 
+                              type="number" 
+                              name={name}
+                              value={values[name] || ''}
+                              onChange={(e) => handleInputChange(name, e.target.value)}
+                              className={`w-full max-w-[80px] mx-auto block p-2 text-center border ${errors[name] ? 'border-rose-500 ring-rose-500/10 ring-1' : 'border-slate-100 focus:border-cyan-500'} rounded outline-none transition-all text-sm font-medium`} 
+                              placeholder="0" 
+                            />
+                            {errors[name] && <div className="text-[8px] text-rose-500 font-bold mt-1 text-center">{errors[name]}</div>}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
     );
   };
 
