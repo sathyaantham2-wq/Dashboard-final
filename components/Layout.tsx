@@ -25,9 +25,8 @@ const Layout: React.FC<LayoutProps> = ({ children, activeView, setActiveView }) 
     { id: 'portal', label: 'Main Portal', icon: '🏛️' },
   ];
 
-  if (currentUser?.role === Role.COMMISSIONER) {
-    navItems.push({ id: 'admin', label: 'Administration', icon: '⚙️' });
-  }
+  // We are removing the 'admin' view as it's now a tab in the Main Portal
+  // but keeping the logic in case we want to re-add separate modules later.
 
   return (
     <div className="flex flex-col h-screen bg-slate-50 overflow-hidden">

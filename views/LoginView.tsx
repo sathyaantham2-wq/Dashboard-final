@@ -67,8 +67,16 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin, users }) => {
     }, 800);
   };
 
+  const demoAccounts = [
+    { role: 'Commissioner', user: 'comm_labour', pass: 'password123' },
+    { role: 'JCL RR', user: 'jcl_rr', pass: 'password123' },
+    { role: 'DCL RR', user: 'dcl_rr', pass: 'password123' },
+    { role: 'ACL RR', user: 'acl_rr', pass: 'password123' },
+    { role: 'ALO RR', user: 'alo_rr', pass: 'password123' },
+  ];
+
   return (
-    <div className="min-h-screen bg-[#f0f4f8] flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-[#f0f4f8] flex flex-col items-center py-12 px-4 overflow-y-auto">
       {/* Government Logos Header */}
       <div className="w-full max-w-lg mb-8 flex justify-between items-center px-4">
         <div className="flex items-center gap-3">
@@ -82,7 +90,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin, users }) => {
         </div>
       </div>
 
-      <div className="w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden border border-slate-200 mb-6">
+      <div className="w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden border border-slate-200 mb-8 flex-shrink-0">
         <div className="bg-[#1e40af] p-6 text-center text-white">
           <h2 className="text-lg font-bold tracking-tight">Integrated Dashboard Login</h2>
           <p className="text-xs text-blue-100/70 mt-1">Authorized Personnel Only</p>
@@ -166,28 +174,47 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin, users }) => {
         </form>
       </div>
 
-      {/* Admin Credentials Showcase (Demo Purposes) */}
-      <div className="w-full max-w-md bg-white p-4 rounded-xl border border-blue-100 shadow-sm mb-6 flex items-center justify-between gap-4 animate-in fade-in slide-in-from-bottom-2">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 text-xs">🔑</div>
+      {/* Admin & Officer Credentials Showcase */}
+      <div className="w-full max-w-lg bg-white rounded-2xl border border-blue-100 shadow-xl p-6 animate-in fade-in slide-in-from-bottom-4 flex-shrink-0">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">🔑</div>
           <div>
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Demo Admin Access</p>
-            <p className="text-xs font-bold text-slate-700">Commissioner of Labour</p>
+            <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest">Demo Access Credentials</h3>
+            <p className="text-[10px] text-slate-500 font-medium">Use these to explore different role-based views.</p>
           </div>
         </div>
-        <div className="flex flex-col text-right">
-          <div className="flex items-center gap-2 justify-end">
-            <span className="text-[10px] text-slate-400 font-medium">User:</span>
-            <code className="text-[10px] font-bold bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100 text-blue-700">comm_labour</code>
-          </div>
-          <div className="flex items-center gap-2 justify-end mt-1">
-            <span className="text-[10px] text-slate-400 font-medium">Pass:</span>
-            <code className="text-[10px] font-bold bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100 text-blue-700">password123</code>
-          </div>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {demoAccounts.map((account, idx) => (
+            <div key={idx} className="p-3 bg-slate-50 rounded-xl border border-slate-100 hover:border-blue-200 transition-all flex flex-col gap-2 group">
+              <div className="flex justify-between items-center">
+                <span className="text-[10px] font-black text-blue-700 uppercase">{account.role}</span>
+                <button 
+                  onClick={() => {
+                    setUsername(account.user);
+                    setPassword(account.pass);
+                  }}
+                  className="text-[9px] font-bold text-slate-400 group-hover:text-blue-600 transition-colors"
+                >
+                  Auto-fill
+                </button>
+              </div>
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-slate-400">User:</span>
+                  <code className="text-[10px] font-bold text-slate-700">{account.user}</code>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-slate-400">Pass:</span>
+                  <code className="text-[10px] font-bold text-slate-700">{account.pass}</code>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
-      <p className="text-center text-slate-400 text-xs max-w-sm leading-relaxed">
+      <p className="text-center text-slate-400 text-xs max-w-sm mt-8 leading-relaxed mb-12">
         This portal is for the exclusive use of Labour Department officials. Unauthorized access attempts are strictly prohibited and monitored.
       </p>
     </div>

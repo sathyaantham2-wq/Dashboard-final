@@ -1,16 +1,24 @@
 
 import React, { useState } from 'react';
+import { useAuth } from '../App';
+import { Role } from '../types';
 import DashboardView from './DashboardView';
 import ReturnsView from './ReturnsView';
+import AdminView from './AdminView';
 
 const MainPortal: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'report'>('dashboard');
+  const { currentUser } = useAuth();
+  const isCommissioner = currentUser?.role === Role.COMMISSIONER;
+  
+  // Set initial tab based on role
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'report' | 'users'>('dashboard');
 
   return (
     <div className="flex flex-col h-full">
       <div className="bg-white border-b border-slate-200 px-12 pt-6 flex-shrink-0 sticky top-0 z-10">
         <div className="flex items-center justify-between max-w-[1400px] mx-auto">
           <div className="flex gap-10">
+            {/* Common Tab: Analytical Dashboard */}
             <button
               onClick={() => setActiveTab('dashboard')}
               className={`pb-5 px-1 text-sm font-bold transition-all relative flex items-center gap-3 ${
@@ -20,29 +28,52 @@ const MainPortal: React.FC = () => {
               <span className={`text-lg p-2 rounded-xl ${activeTab === 'dashboard' ? 'bg-cyan-50' : 'bg-slate-50'}`}>📊</span>
               <div className="text-left">
                 <p className="leading-none">Analytical Dashboard</p>
-                <p className={`text-[10px] mt-1 font-medium ${activeTab === 'dashboard' ? 'text-cyan-500' : 'text-slate-400'}`}>Monitor KPIs & Trends</p>
+                <p className={`text-[10px] mt-1 font-medium ${activeTab === 'dashboard' ? 'text-cyan-500' : 'text-slate-400'}`}>Monitor Performance</p>
               </div>
-              {activeTab === 'dashboard' && <div className="absolute bottom-0 left-0 right-0 h-1 bg-cyan-600 rounded-t-full shadow-[0_-2px_10px_rgba(8,145,178,0.3)]"></div>}
+              {activeTab === 'dashboard' && <div className="absolute bottom-0 left-0 right-0 h-1 bg-cyan-600 rounded-t-full"></div>}
             </button>
-            <button
-              onClick={() => setActiveTab('report')}
-              className={`pb-5 px-1 text-sm font-bold transition-all relative flex items-center gap-3 ${
-                activeTab === 'report' ? 'text-cyan-600' : 'text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              <span className={`text-lg p-2 rounded-xl ${activeTab === 'report' ? 'bg-cyan-50' : 'bg-slate-50'}`}>📝</span>
-              <div className="text-left">
-                <p className="leading-none">Monthly Report Form</p>
-                <p className={`text-[10px] mt-1 font-medium ${activeTab === 'report' ? 'text-cyan-500' : 'text-slate-400'}`}>Data Entry & Submission</p>
-              </div>
-              {activeTab === 'report' && <div className="absolute bottom-0 left-0 right-0 h-1 bg-cyan-600 rounded-t-full shadow-[0_-2px_10px_rgba(8,145,178,0.3)]"></div>}
-            </button>
+
+            {/* Commissioner-only Tab: User Management */}
+            {isCommissioner && (
+              <button
+                onClick={() => setActiveTab('users')}
+                className={`pb-5 px-1 text-sm font-bold transition-all relative flex items-center gap-3 ${
+                  activeTab === 'users' ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-800'
+                }`}
+              >
+                <span className={`text-lg p-2 rounded-xl ${activeTab === 'users' ? 'bg-indigo-50' : 'bg-slate-50'}`}>👥</span>
+                <div className="text-left">
+                  <p className="leading-none">User Management</p>
+                  <p className={`text-[10px] mt-1 font-medium ${activeTab === 'users' ? 'text-indigo-500' : 'text-slate-400'}`}>Officer Administration</p>
+                </div>
+                {activeTab === 'users' && <div className="absolute bottom-0 left-0 right-0 h-1 bg-indigo-600 rounded-t-full"></div>}
+              </button>
+            )}
+
+            {/* Other Roles-only Tab: Monthly Report */}
+            {!isCommissioner && (
+              <button
+                onClick={() => setActiveTab('report')}
+                className={`pb-5 px-1 text-sm font-bold transition-all relative flex items-center gap-3 ${
+                  activeTab === 'report' ? 'text-cyan-600' : 'text-slate-400 hover:text-slate-800'
+                }`}
+              >
+                <span className={`text-lg p-2 rounded-xl ${activeTab === 'report' ? 'bg-cyan-50' : 'bg-slate-50'}`}>📝</span>
+                <div className="text-left">
+                  <p className="leading-none">Monthly Report</p>
+                  <p className={`text-[10px] mt-1 font-medium ${activeTab === 'report' ? 'text-cyan-500' : 'text-slate-400'}`}>Data Submission</p>
+                </div>
+                {activeTab === 'report' && <div className="absolute bottom-0 left-0 right-0 h-1 bg-cyan-600 rounded-t-full"></div>}
+              </button>
+            )}
           </div>
         </div>
       </div>
       <div className="flex-1 overflow-y-auto p-12 bg-slate-50/50">
-        <div className="max-w-[1400px] mx-auto">
-          {activeTab === 'dashboard' ? <DashboardView /> : <ReturnsView />}
+        <div className="max-w-[1400px] mx-auto h-full">
+          {activeTab === 'dashboard' && <DashboardView />}
+          {activeTab === 'report' && !isCommissioner && <ReturnsView />}
+          {activeTab === 'users' && isCommissioner && <AdminView />}
         </div>
       </div>
     </div>

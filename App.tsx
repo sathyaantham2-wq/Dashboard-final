@@ -13,6 +13,7 @@ interface AuthContextType {
   setCurrentUser: (user: User | null) => void;
   addUser: (user: User) => void;
   updateUser: (user: User) => void;
+  deleteUser: (userId: string) => void;
   logout: () => void;
 }
 
@@ -22,6 +23,7 @@ const AuthContext = createContext<AuthContextType>({
   setCurrentUser: () => {},
   addUser: () => {},
   updateUser: () => {},
+  deleteUser: () => {},
   logout: () => {},
 });
 
@@ -45,6 +47,10 @@ const App: React.FC = () => {
     setUsers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
   };
 
+  const deleteUser = (userId: string) => {
+    setUsers(prev => prev.filter(u => u.id !== userId));
+  };
+
   const renderContent = () => {
     if (!currentUser) {
       return <LoginView onLogin={setCurrentUser} users={users} />;
@@ -61,7 +67,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <AuthContext.Provider value={{ currentUser, users, setCurrentUser, addUser, updateUser, logout }}>
+    <AuthContext.Provider value={{ currentUser, users, setCurrentUser, addUser, updateUser, deleteUser, logout }}>
       {currentUser ? (
         <Layout activeView={activeView} setActiveView={setActiveView}>
           {renderContent()}

@@ -34,6 +34,54 @@ export const MOCK_USERS: User[] = [
     district: 'Hyderabad',
     status: 'Active'
   },
+  { 
+    id: '3', 
+    username: 'jcl_rr',
+    password: 'password123',
+    name: 'Shyamsunder Reddy.D', 
+    role: Role.JCL, 
+    superiorId: '1', 
+    mobile: '9492555315', 
+    email: 'jcl.rangareddy@gmail.com', 
+    district: 'Rangareddy',
+    status: 'Active'
+  },
+  { 
+    id: '4', 
+    username: 'dcl_rr',
+    password: 'password123',
+    name: 'Shyamsunder Jaju', 
+    role: Role.DCL, 
+    superiorId: '3', 
+    mobile: '9492555345', 
+    email: 'dcl.rangareddy@telangana.gov.in', 
+    district: 'Rangareddy',
+    status: 'Active'
+  },
+  { 
+    id: '5', 
+    username: 'acl_rr',
+    password: 'password123',
+    name: 'Satyanarayana Reddy', 
+    role: Role.ACL, 
+    superiorId: '4', 
+    mobile: '9492555253', 
+    email: 'acl.rangareddy@gmail.com', 
+    district: 'Rangareddy',
+    status: 'Active'
+  },
+  { 
+    id: '6', 
+    username: 'alo_rr',
+    password: 'password123',
+    name: 'K. Mahesh Kumar', 
+    role: Role.ALO, 
+    superiorId: '5', 
+    mobile: '9492555111', 
+    email: 'alo.rangareddy@telangana.gov.in', 
+    district: 'Rangareddy',
+    status: 'Active'
+  }
 ];
 
 export const COLORS = {

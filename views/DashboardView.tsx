@@ -1,14 +1,22 @@
 
-import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
+import React, { useState } from 'react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
 import { useAuth } from '../App';
 import StatCard from '../components/StatCard';
 import { Role } from '../types';
 
 const DashboardView: React.FC = () => {
   const { currentUser } = useAuth();
+  const [activeSegment, setActiveSegment] = useState<'all' | 'bocw' | 'judicial' | 'enforcement' | 'industrial'>('all');
 
   const PIE_COLORS = ['#0891b2', '#10b981', '#f59e0b', '#f43f5e', '#6366f1'];
+
+  const bocwSchemes = [
+    { name: 'Natural Death Assistance', opening: 412, new: 85, cleared: 92, balance: 405, amount: '₹ 2.05 Cr' },
+    { name: 'Accidental Death Assistance', opening: 64, new: 12, cleared: 15, balance: 61, amount: '₹ 1.83 Cr' },
+    { name: 'Maternity Benefit', opening: 1240, new: 450, cleared: 480, balance: 1210, amount: '₹ 3.63 Cr' },
+    { name: 'Marriage Benefit', opening: 2150, new: 780, cleared: 720, balance: 2210, amount: '₹ 6.63 Cr' },
+  ];
 
   const grievanceData = [
     { name: 'Opening', val: 45 },
@@ -17,63 +25,113 @@ const DashboardView: React.FC = () => {
     { name: 'Closing', val: 49 },
   ];
 
-  const settlementRatio = [
-    { name: 'Settled', value: 75 },
-    { name: 'Referred to LC', value: 25 },
+  const performanceTrend = [
+    { mo: 'Oct', enforcement: 400, judicial: 240, welfare: 800 },
+    { mo: 'Nov', enforcement: 450, judicial: 280, welfare: 950 },
+    { mo: 'Dec', enforcement: 420, judicial: 310, welfare: 1100 },
+    { mo: 'Jan', enforcement: 510, judicial: 290, welfare: 1250 },
   ];
 
-  const getDashboardTitle = () => {
-    switch (currentUser?.role) {
-      case Role.ALO: return "Operational Enforcement Dashboard";
-      case Role.ACL: return "Quasi-Judicial Performance Dashboard";
-      case Role.DCL: return "Divisional Oversight Dashboard";
-      case Role.JCL: return "Industrial Relations & Regional Dashboard";
-      default: return "Integrated State-wide Performance Dashboard";
-    }
-  };
-
-  const renderALOAnalytics = () => (
-    <div className="space-y-10">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard title="Child Labour Rescued" value="12" icon="👶" trend="20%" trendUp={true} />
-        <StatCard title="Comp. Paid Cases" value="8" icon="₹" trend="10%" trendUp={true} />
-        <StatCard title="Inspections Done" value="42" icon="🔍" colorClass="text-emerald-600" />
-        <StatCard title="Grievances Resolved" value="92%" icon="✅" colorClass="text-amber-600" />
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white p-8 rounded-[32px] border border-slate-200 shadow-sm">
-          <h4 className="font-bold text-slate-800 mb-6 flex items-center gap-2">
-            <span className="w-1.5 h-1.5 bg-cyan-500 rounded-full"></span>
-            Grievance Movement Trend
+  const renderBOCWSection = () => (
+    <div className="bg-white rounded-[32px] border border-slate-200 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="p-8 border-b border-slate-100 bg-gradient-to-r from-orange-50 to-white flex justify-between items-center">
+        <div>
+          <h4 className="text-xl font-black text-slate-800 flex items-center gap-3">
+            <span className="p-2 bg-orange-500 text-white rounded-xl text-xs">🏗️</span>
+            BOCW Welfare Schemes Tracking
           </h4>
-          <div className="h-64">
+          <p className="text-slate-500 text-xs mt-1 font-medium italic">Status of Direct Benefit Transfer (DBT) claims for registered workers.</p>
+        </div>
+        <div className="text-right">
+          <p className="text-[10px] font-black text-orange-600 uppercase tracking-widest">Total Disbursed</p>
+          <p className="text-2xl font-black text-slate-900">₹ 14.14 Cr</p>
+        </div>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-left">
+          <thead>
+            <tr className="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+              <th className="px-8 py-5">Scheme Name</th>
+              <th className="px-8 py-5 text-center">Opening (Start of Month)</th>
+              <th className="px-8 py-5 text-center">New Claims Added</th>
+              <th className="px-8 py-5 text-center">Cleared / Paid</th>
+              <th className="px-8 py-5 text-center">Balance Pending</th>
+              <th className="px-8 py-5 text-right">Amount Settled</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {bocwSchemes.map((scheme, i) => (
+              <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                <td className="px-8 py-5">
+                  <p className="font-bold text-slate-800 text-sm">{scheme.name}</p>
+                </td>
+                <td className="px-8 py-5 text-center font-bold text-slate-500">{scheme.opening}</td>
+                <td className="px-8 py-5 text-center">
+                  <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full font-bold text-xs">+{scheme.new}</span>
+                </td>
+                <td className="px-8 py-5 text-center">
+                  <span className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full font-bold text-xs">-{scheme.cleared}</span>
+                </td>
+                <td className="px-8 py-5 text-center">
+                  <span className={`font-black text-sm ${scheme.balance > scheme.opening ? 'text-rose-600' : 'text-slate-900'}`}>
+                    {scheme.balance}
+                  </span>
+                </td>
+                <td className="px-8 py-5 text-right font-black text-slate-900">{scheme.amount}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+
+  const renderJudicialSection = () => (
+    <div className="bg-white rounded-[32px] border border-slate-200 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="p-8 border-b border-slate-100 bg-gradient-to-r from-indigo-50 to-white">
+        <h4 className="text-xl font-black text-slate-800 flex items-center gap-3">
+          <span className="p-2 bg-indigo-600 text-white rounded-xl text-xs">⚖️</span>
+          ACL/DCL Quasi-Judicial Segment
+        </h4>
+        <p className="text-slate-500 text-xs mt-1">Disposal and pendency monitoring of statutory cases across administrative layers.</p>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-0 divide-x divide-slate-100 border-b border-slate-100">
+        <div className="p-8">
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Case Load Distribution</p>
+          <div className="h-48">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={grievanceData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#64748b'}} />
-                <YAxis hide />
-                <Tooltip cursor={{fill: '#f8fafc'}} />
-                <Bar dataKey="val" fill="#0891b2" radius={[4, 4, 0, 0]} barSize={40} />
-              </BarChart>
+              <PieChart>
+                <Pie data={[{name: 'ACL', val: 450}, {name: 'DCL', val: 180}]} innerRadius={50} outerRadius={70} dataKey="val">
+                  <Cell fill="#6366f1" /><Cell fill="#a855f7" />
+                </Pie>
+                <Tooltip />
+              </PieChart>
             </ResponsiveContainer>
           </div>
         </div>
-        <div className="bg-white p-8 rounded-[32px] border border-slate-200 shadow-sm">
-          <h4 className="font-bold text-slate-800 mb-6">Child Labour Summary</h4>
-          <table className="w-full text-sm">
+        <div className="lg:col-span-2 p-8 overflow-x-auto">
+          <table className="w-full text-left text-xs">
             <thead>
-              <tr className="text-slate-400 text-[10px] uppercase font-bold border-b border-slate-100">
-                <th className="pb-3 text-left">Indicator</th>
-                <th className="pb-3 text-right">Count</th>
-                <th className="pb-3 text-right">Trend</th>
+              <tr className="text-slate-400 font-bold uppercase tracking-tighter">
+                <th className="pb-4">Act Category</th>
+                <th className="pb-4 text-center">Pending (Start)</th>
+                <th className="pb-4 text-center">Disposed</th>
+                <th className="pb-4 text-center">Reserved</th>
+                <th className="pb-4 text-right">Benefit Target</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50">
-              {['Hazardous Identified', 'Non-Hazardous ID', 'Comp. Settled', 'Comp. Pending'].map((item, i) => (
-                <tr key={i}>
-                  <td className="py-3 font-medium text-slate-700">{item}</td>
-                  <td className="py-3 text-right font-bold text-slate-900">{Math.floor(Math.random()*20)}</td>
-                  <td className="py-3 text-right text-emerald-500 text-[10px] font-bold">↑ 2%</td>
+            <tbody className="divide-y divide-slate-50 font-medium">
+              {[
+                {act: 'Minimum Wages Act', p: 142, d: 24, r: 5, b: '92%'},
+                {act: 'Shops & Estb Act', p: 562, d: 110, r: 12, b: '85%'},
+                {act: 'Gratuity Act', p: 89, d: 18, r: 3, b: '98%'}
+              ].map((item, idx) => (
+                <tr key={idx}>
+                  <td className="py-4 text-slate-800 font-bold">{item.act}</td>
+                  <td className="py-4 text-center text-slate-500">{item.p}</td>
+                  <td className="py-4 text-center text-emerald-600 font-black">{item.d}</td>
+                  <td className="py-4 text-center text-amber-600 font-black">{item.r}</td>
+                  <td className="py-4 text-right font-black text-slate-900">{item.b}</td>
                 </tr>
               ))}
             </tbody>
@@ -83,223 +141,158 @@ const DashboardView: React.FC = () => {
     </div>
   );
 
-  const renderACLAnalytics = () => (
-    <div className="space-y-10">
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <StatCard title="Total Pending" value="142" icon="📁" />
-        <StatCard title="Filed This Mo." value="18" icon="📥" />
-        <StatCard title="Disposed" value="14" icon="📤" />
-        <StatCard title="Reserved" value="6" icon="⏳" colorClass="text-amber-500" />
-        <StatCard title="Workers Benf." value="420" icon="👥" />
-        <StatCard title="Grievances" value="12" icon="💬" />
-      </div>
-      <div className="bg-white rounded-[32px] border border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-8 border-b border-slate-100 bg-slate-50/50">
-          <h4 className="font-bold text-slate-800">Act-wise Case Status Dashboard</h4>
-        </div>
-        <table className="w-full text-left">
-          <thead>
-            <tr className="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">
-              <th className="px-8 py-4">Act / Section</th>
-              <th className="px-8 py-4">Opening</th>
-              <th className="px-8 py-4">Filed</th>
-              <th className="px-8 py-4">Disposed</th>
-              <th className="px-8 py-4">Closing</th>
-              <th className="px-8 py-4">Reserved</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {['S&E Act 48(1)', 'S&E Act 50', 'Minimum Wages', 'Payment of Wages', 'Gratuity Act'].map((act, i) => (
-              <tr key={i} className="hover:bg-slate-50/50 transition-colors">
-                <td className="px-8 py-4 font-bold text-slate-700 text-sm">{act}</td>
-                <td className="px-8 py-4 text-sm text-slate-500">{20 + i}</td>
-                <td className="px-8 py-4 text-sm text-emerald-600 font-bold">{i+2}</td>
-                <td className="px-8 py-4 text-sm text-slate-700">{i+1}</td>
-                <td className="px-8 py-4 text-sm text-slate-900 font-bold">{21 + i}</td>
-                <td className="px-8 py-4 text-sm text-amber-600 font-bold">{i === 1 ? '3' : '0'}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-
-  const renderDCLAnalytics = () => (
-    <div className="space-y-10">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white p-8 rounded-[32px] border border-slate-200 shadow-sm">
-          <h4 className="font-bold text-slate-800 mb-6">DCL Case Work Summary</h4>
-          <div className="grid grid-cols-2 gap-4 mb-8">
-            <div className="p-4 bg-purple-50 rounded-2xl border border-purple-100">
-              <p className="text-[10px] font-bold text-purple-600 uppercase mb-1">Section 48(3)</p>
-              <h5 className="text-xl font-black text-slate-900">24 Pending</h5>
-            </div>
-            <div className="p-4 bg-purple-50 rounded-2xl border border-purple-100">
-              <p className="text-[10px] font-bold text-purple-600 uppercase mb-1">Section 53</p>
-              <h5 className="text-xl font-black text-slate-900">12 Pending</h5>
-            </div>
-          </div>
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="border-b border-slate-100 text-slate-400 font-bold">
-                <th className="pb-3 text-left">Metric</th>
-                <th className="pb-3 text-right">48(3)</th>
-                <th className="pb-3 text-right">53</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50">
-              <tr><td className="py-3">Filed This Month</td><td className="py-3 text-right font-bold">4</td><td className="py-3 text-right font-bold">2</td></tr>
-              <tr><td className="py-3">Disposed</td><td className="py-3 text-right font-bold">3</td><td className="py-3 text-right font-bold">1</td></tr>
-              <tr><td className="py-3">Reserved Orders</td><td className="py-3 text-right font-bold text-amber-600">2</td><td className="py-3 text-right font-bold text-amber-600">0</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div className="bg-slate-900 p-8 rounded-[32px] text-white shadow-2xl">
-          <h4 className="font-bold mb-6">Divisional Compliance Status</h4>
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <div className="flex justify-between text-xs font-bold">
-                <span className="text-slate-400">ACL Reports Received</span>
-                <span className="text-emerald-400">100%</span>
-              </div>
-              <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
-                <div className="h-full bg-emerald-500" style={{width: '100%'}}></div>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <div className="flex justify-between text-xs font-bold">
-                <span className="text-slate-400">ALO Reports Received</span>
-                <span className="text-cyan-400">85%</span>
-              </div>
-              <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
-                <div className="h-full bg-cyan-500" style={{width: '85%'}}></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderJCLAnalytics = () => (
-    <div className="space-y-10">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard title="ID Pending (Union)" value="56" icon="🤝" />
-        <StatCard title="ID Pending (Indiv)" value="124" icon="👤" />
-        <StatCard title="Failures Referred" value="12" icon="⚖️" colorClass="text-rose-500" />
-        <StatCard title="Regional Grievances" value="89" icon="🏛️" />
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 bg-white p-8 rounded-[32px] border border-slate-200 shadow-sm">
-          <h4 className="font-bold text-slate-800 mb-8">Industrial Disputes Settlement Effectiveness</h4>
-          <div className="h-64 flex items-center justify-center">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={settlementRatio}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {settlementRatio.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend verticalAlign="bottom" height={36}/>
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-        <div className="bg-slate-900 p-8 rounded-[32px] text-white">
-          <h4 className="font-bold mb-6">Regional Summary Feed</h4>
-          <div className="space-y-4">
-            {['Hyderabad Central', 'Rangareddy East', 'Medchal West'].map((dist, i) => (
-              <div key={i} className="p-4 bg-white/5 border border-white/10 rounded-2xl">
-                <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">{dist}</p>
-                <div className="flex justify-between items-end">
-                  <span className="text-xl font-bold">{30 - (i*5)} Active Cases</span>
-                  <span className="text-[10px] text-emerald-400 font-bold mb-1">↑ Normal</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderCommissionerAnalytics = () => (
-    <div className="space-y-10">
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <StatCard title="State Pendency" value="2,450" icon="📦" />
-        <StatCard title="Disposal Rate" value="82%" icon="📉" />
-        <StatCard title="Grievances" value="412" icon="💬" colorClass="text-rose-500" />
-        <StatCard title="Child Labour (State)" value="156" icon="👶" />
-        <StatCard title="Reg. Compliance" value="94%" icon="🏢" />
-        <StatCard title="Welfare Coverage" value="1.2M" icon="🏗️" colorClass="text-orange-500" />
-      </div>
-      <div className="bg-white p-10 rounded-[40px] border border-slate-200 shadow-sm">
-        <h4 className="text-xl font-black text-slate-800 mb-8 flex items-center gap-4">
-          <span className="w-3 h-3 bg-cyan-500 rounded-full animate-pulse"></span>
-          State-wide Performance & Integrated API Feed
+  const renderEnforcementSection = () => (
+    <div className="bg-white rounded-[32px] border border-slate-200 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="p-8 border-b border-slate-100 bg-gradient-to-r from-emerald-50 to-white">
+        <h4 className="text-xl font-black text-slate-800 flex items-center gap-3">
+          <span className="p-2 bg-emerald-600 text-white rounded-xl text-xs">🔍</span>
+          ALO Enforcement & Inspections
         </h4>
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
-          <div className="lg:col-span-3 h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={[
-                {mo: 'Jan', p: 2500, d: 2100},
-                {mo: 'Feb', p: 2450, d: 2200},
-                {mo: 'Mar', p: 2400, d: 2450},
-                {mo: 'Apr', p: 2350, d: 2400},
-              ]}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="mo" axisLine={false} tickLine={false} />
-                <YAxis hide />
-                <Tooltip />
-                <Legend />
-                <Line name="Total Pendency" type="monotone" dataKey="p" stroke="#0f172a" strokeWidth={3} dot={false} />
-                <Line name="Total Disposals" type="monotone" dataKey="d" stroke="#0891b2" strokeWidth={3} dot={false} />
-              </LineChart>
-            </ResponsiveContainer>
+        <p className="text-slate-500 text-xs mt-1">Ground-level statutory compliance monitoring and child labour rescue operations.</p>
+      </div>
+      <div className="p-8 grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
+          <p className="text-[10px] font-black text-slate-400 uppercase mb-2">Child Labour ID</p>
+          <div className="flex items-end gap-3">
+            <span className="text-3xl font-black text-slate-900">156</span>
+            <span className="text-[10px] text-emerald-600 font-bold mb-1.5">↑ 4%</span>
           </div>
-          <div className="space-y-4">
-            <div className="p-5 bg-orange-50 rounded-3xl border border-orange-100">
-              <p className="text-[10px] font-bold text-orange-600 uppercase mb-1">BOCW Live</p>
-              <h5 className="text-2xl font-black text-slate-900">₹ 14.2 Cr</h5>
-              <p className="text-[10px] text-slate-500 mt-2">Welfare Schemes Disbursed</p>
+        </div>
+        <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
+          <p className="text-[10px] font-black text-slate-400 uppercase mb-2">Rescued Today</p>
+          <div className="flex items-end gap-3">
+            <span className="text-3xl font-black text-slate-900">12</span>
+            <span className="text-[10px] text-emerald-600 font-bold mb-1.5">Safe</span>
+          </div>
+        </div>
+        <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
+          <p className="text-[10px] font-black text-slate-400 uppercase mb-2">Pros. Filed</p>
+          <div className="flex items-end gap-3">
+            <span className="text-3xl font-black text-slate-900">42</span>
+            <span className="text-[10px] text-rose-600 font-bold mb-1.5">New</span>
+          </div>
+        </div>
+        <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
+          <p className="text-[10px] font-black text-slate-400 uppercase mb-2">Inspections Done</p>
+          <div className="flex items-end gap-3">
+            <span className="text-3xl font-black text-slate-900">85%</span>
+            <span className="text-[10px] text-cyan-600 font-bold mb-1.5">Target</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderIndustrialSection = () => (
+    <div className="bg-slate-900 rounded-[32px] border border-slate-800 shadow-2xl overflow-hidden text-white animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="p-8 border-b border-white/10 bg-white/5 flex justify-between items-center">
+        <div>
+          <h4 className="text-xl font-black flex items-center gap-3">
+            <span className="p-2 bg-cyan-600 text-white rounded-xl text-xs">🤝</span>
+            JCL Industrial Relations Segment
+          </h4>
+          <p className="text-slate-400 text-xs mt-1">Industrial dispute conciliation status and union registry monitoring.</p>
+        </div>
+        <button className="px-4 py-2 bg-white/10 rounded-xl text-xs font-bold hover:bg-white/20 transition-all">View All Disputes</button>
+      </div>
+      <div className="p-8 grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <div className="h-64">
+          <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-6">Settlement Effectiveness Trend</p>
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={performanceTrend}>
+              <defs>
+                <linearGradient id="colorInd" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#0891b2" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="#0891b2" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff10" />
+              <XAxis dataKey="mo" stroke="#ffffff30" tick={{fontSize: 10}} />
+              <Tooltip contentStyle={{backgroundColor: '#0f172a', border: 'none'}} />
+              <Area type="monotone" dataKey="welfare" stroke="#0891b2" fillOpacity={1} fill="url(#colorInd)" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="space-y-4">
+          <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Conciliation Breakdown</p>
+          {[
+            {label: 'Union Disputes Pending', val: 56, color: 'bg-cyan-600'},
+            {label: 'Individual Disputes Pending', val: 124, color: 'bg-emerald-600'},
+            {label: 'Failures Referred to Court', val: 18, color: 'bg-rose-600'},
+            {label: 'Awaiting Settlement 12(3)', val: 32, color: 'bg-amber-600'}
+          ].map((stat, idx) => (
+            <div key={idx} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 group hover:bg-white/10 transition-all cursor-default">
+              <span className="text-sm font-bold text-slate-300">{stat.label}</span>
+              <span className={`px-4 py-1 rounded-full text-xs font-black ${stat.color}`}>{stat.val}</span>
             </div>
-            <button className="w-full py-4 bg-slate-900 text-white rounded-2xl text-xs font-bold shadow-xl shadow-slate-900/20">
-              Generate State Report
-            </button>
-          </div>
+          ))}
         </div>
       </div>
     </div>
   );
 
   return (
-    <div className="space-y-12 animate-in fade-in duration-1000">
+    <div className="space-y-12 animate-in fade-in duration-1000 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <span className="w-2 h-2 bg-cyan-500 rounded-full"></span>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Analytical Intelligence Layer</span>
+            <span className="w-2 h-2 bg-cyan-500 rounded-full animate-pulse"></span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Consolidated Integrated Intelligence</span>
           </div>
-          <h2 className="text-4xl font-black text-slate-900 tracking-tight">{getDashboardTitle()}</h2>
-          <p className="text-slate-500 text-sm font-medium mt-1">Derived from verified monthly returns and integrated departmental APIs.</p>
+          <h2 className="text-4xl font-black text-slate-900 tracking-tight">Departmental Performance Portal</h2>
+          <p className="text-slate-500 text-sm font-medium mt-1">Cross-hierarchical monitoring of statutory, judicial, and welfare functions.</p>
+        </div>
+        <div className="flex items-center bg-white p-1.5 rounded-2xl border border-slate-200 shadow-sm">
+          {(['all', 'bocw', 'judicial', 'enforcement', 'industrial'] as const).map((seg) => (
+            <button
+              key={seg}
+              onClick={() => setActiveSegment(seg)}
+              className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${
+                activeSegment === seg 
+                  ? 'bg-slate-900 text-white shadow-xl shadow-slate-900/20' 
+                  : 'text-slate-400 hover:text-slate-600'
+              }`}
+            >
+              {seg === 'all' ? 'Full View' : seg}
+            </button>
+          ))}
         </div>
       </div>
-      <div className="animate-in slide-in-from-bottom-6 duration-700">
-        {currentUser?.role === Role.ALO && renderALOAnalytics()}
-        {currentUser?.role === Role.ACL && renderACLAnalytics()}
-        {currentUser?.role === Role.DCL && renderDCLAnalytics()}
-        {currentUser?.role === Role.JCL && renderJCLAnalytics()}
-        {currentUser?.role === Role.COMMISSIONER && renderCommissionerAnalytics()}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard title="Overall State Pendency" value="2,842" icon="📦" trend="3%" trendUp={false} />
+        <StatCard title="BOCW Disbursal (Mo.)" value="₹ 14.1 Cr" icon="₹" trend="12%" trendUp={true} colorClass="text-orange-600" />
+        <StatCard title="Judicial Clearance" value="84%" icon="📉" trend="5%" trendUp={true} colorClass="text-indigo-600" />
+        <StatCard title="Enforcement Target" value="96%" icon="🎯" colorClass="text-emerald-600" />
+      </div>
+
+      <div className="space-y-16">
+        {(activeSegment === 'all' || activeSegment === 'bocw') && renderBOCWSection()}
+        {(activeSegment === 'all' || activeSegment === 'judicial') && renderJudicialSection()}
+        {(activeSegment === 'all' || activeSegment === 'enforcement') && renderEnforcementSection()}
+        {(activeSegment === 'all' || activeSegment === 'industrial') && renderIndustrialSection()}
+      </div>
+      
+      {/* Bottom Integrated Summary */}
+      <div className="bg-slate-100 p-12 rounded-[48px] border border-slate-200">
+        <div className="max-w-4xl mx-auto text-center">
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Verification Layer</p>
+          <h3 className="text-2xl font-black text-slate-800 mb-6">System Data Integrity Overview</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-12">
+            <div>
+              <p className="text-4xl font-black text-cyan-600 mb-2">99.8%</p>
+              <p className="text-xs font-bold text-slate-500 uppercase">API Reconciliation</p>
+            </div>
+            <div>
+              <p className="text-4xl font-black text-emerald-600 mb-2">32,140</p>
+              <p className="text-xs font-bold text-slate-500 uppercase">Registered Workers Verified</p>
+            </div>
+            <div>
+              <p className="text-4xl font-black text-indigo-600 mb-2">5,102</p>
+              <p className="text-xs font-bold text-slate-500 uppercase">Quasi-Judicial Orders Issued</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
